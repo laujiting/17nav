@@ -189,21 +189,104 @@ body {
     font-size: 0.8rem; font-weight: 600; color: var(--text-muted);
     margin-bottom: 0.6rem; text-transform: uppercase; letter-spacing: 1px;
 }
-.clock-list, .weather-list {
-    display: flex; flex-direction: column; gap: 0.4rem;
+
+/* ===== 世界时钟地图 ===== */
+.clock-map-container {
+    position: relative; width: 100%; border-radius: 0.8rem; overflow: hidden;
+    margin-top: 0.5rem;
 }
-.clock-item {
-    display: flex; justify-content: space-between; align-items: center;
-    font-size: 0.85rem;
+.clock-map {
+    position: relative; width: 100%; padding-bottom: 50%; /* 2:1 宽高比 */
+    background: #0a0a1a;
+    background-image:
+        linear-gradient(rgba(99,102,241,0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99,102,241,0.08) 1px, transparent 1px);
+    background-size: 5% 10%;
+    border: 1px solid rgba(99,102,241,0.2);
+    border-radius: 0.6rem;
+    overflow: hidden;
 }
-.clock-item .city { color: var(--text-muted); }
-.clock-item .time { font-weight: 600; font-variant-numeric: tabular-nums; }
+/* 地图大陆轮廓（简化版，用 box-shadow 模拟） */
+.clock-map::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background:
+        radial-gradient(ellipse 15% 10% at 20% 35%, rgba(67,56,202,0.25) 0%, transparent 70%),
+        radial-gradient(ellipse 12% 15% at 28% 55%, rgba(67,56,202,0.2) 0%, transparent 70%),
+        radial-gradient(ellipse 8% 10% at 50% 40%, rgba(67,56,202,0.2) 0%, transparent 70%),
+        radial-gradient(ellipse 10% 12% at 55% 60%, rgba(67,56,202,0.15) 0%, transparent 70%),
+        radial-gradient(ellipse 8% 8% at 75% 35%, rgba(67,56,202,0.2) 0%, transparent 70%),
+        radial-gradient(ellipse 6% 8% at 80% 70%, rgba(67,56,202,0.15) 0%, transparent 70%);
+    pointer-events: none;
+}
+.clock-marker {
+    position: absolute; width: 8px; height: 8px;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+}
+.clock-marker::before {
+    content: ''; position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #a5b4fc;
+    box-shadow: 0 0 6px #a5b4fc, 0 0 12px rgba(165,180,252,0.5);
+    animation: clockPulse 2s ease-in-out infinite;
+}
+@keyframes clockPulse {
+    0%, 100% { box-shadow: 0 0 6px #a5b4fc, 0 0 12px rgba(165,180,252,0.5); }
+    50% { box-shadow: 0 0 10px #a5b4fc, 0 0 20px rgba(165,180,252,0.7); }
+}
+.clock-bubble {
+    position: absolute; bottom: 100%; left: 100%;
+    transform: translateY(50%);
+    background: rgba(15,15,26,0.92); backdrop-filter: blur(8px);
+    border: 1px solid rgba(165,180,252,0.3);
+    border-radius: 0.5rem; padding: 0.3rem 0.6rem;
+    white-space: nowrap; pointer-events: none;
+    transition: all 0.2s ease; z-index: 10;
+}
+.clock-marker:hover .clock-bubble {
+    background: rgba(49,46,129,0.95); border-color: rgba(165,180,252,0.6);
+    transform: translateY(50%) scale(1.1);
+}
+.clock-bubble-city {
+    font-size: 0.7rem; color: #a5b4fc; font-weight: 600;
+}
+.clock-bubble-time {
+    font-size: 0.85rem; color: #fff; font-weight: 700;
+    font-variant-numeric: tabular-nums; line-height: 1.2;
+}
+.clock-bubble-date {
+    font-size: 0.65rem; color: #94a3b8;
+}
+
+/* ===== 天气增强版 ===== */
+.weather-list {
+    display: flex; flex-direction: column; gap: 0.8rem;
+}
 .weather-item {
-    display: flex; justify-content: space-between; align-items: center;
-    font-size: 0.85rem;
+    padding: 0.6rem 0.8rem; border-radius: 0.6rem;
+    background: rgba(99,102,241,0.04); border: 1px solid rgba(99,102,241,0.1);
 }
-.weather-item .city { color: var(--text-muted); }
-.weather-item .temp { font-weight: 600; }
+.weather-city {
+    font-size: 0.8rem; font-weight: 600; color: var(--text);
+    margin-bottom: 0.3rem;
+}
+.weather-main {
+    display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;
+    margin-bottom: 0.3rem;
+}
+.weather-icon { font-size: 1.1rem; }
+.weather-type { font-size: 0.8rem; color: var(--text-muted); }
+.weather-temp { font-size: 0.9rem; font-weight: 700; color: var(--text); }
+.weather-temp-range { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+.weather-details {
+    display: flex; gap: 0.8rem; flex-wrap: wrap; margin-top: 0.3rem;
+}
+.weather-detail {
+    font-size: 0.7rem; color: var(--text-muted);
+    padding: 0.15rem 0.4rem; border-radius: 0.3rem;
+    background: rgba(99,102,241,0.06);
+}
 
 /* ===== Bookmark Grid ===== */
 .bookmark-section { margin-bottom: 2rem; }

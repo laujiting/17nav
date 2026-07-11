@@ -1,14 +1,26 @@
 <?php if (!defined('__TYPECHO_ROOT_DIR__')) exit;
 
-// 注入时钟城市数据
-$clockCitiesRaw = nav17_get_theme_config('clockCities', "北京|Asia/Shanghai\n纽约|America/New_York\n伦敦|Europe/London");
+// 注入时钟城市数据（格式：城市名|纬度|经度|时区）
+$clockCitiesRaw = nav17_get_theme_config('clockCities', "北京|39.9|116.4|Asia/Shanghai\n上海|31.2|121.5|Asia/Shanghai\n伦敦|51.5|-0.1|Europe/London\n纽约|40.7|-74.0|America/New_York");
 $clockCities = array();
 foreach (explode("\n", $clockCitiesRaw) as $line) {
     $line = trim($line);
     if (empty($line)) continue;
     $parts = explode('|', $line);
-    if (count($parts) >= 2) {
-        $clockCities[] = array('city' => trim($parts[0]), 'timezone' => trim($parts[1]));
+    if (count($parts) >= 4) {
+        $clockCities[] = array(
+            'city' => trim($parts[0]),
+            'lat' => floatval(trim($parts[1])),
+            'lon' => floatval(trim($parts[2])),
+            'timezone' => trim($parts[3])
+        );
+    } elseif (count($parts) >= 2) {
+        // 旧格式兼容：城市名|时区
+        $clockCities[] = array(
+            'city' => trim($parts[0]),
+            'lat' => 0, 'lon' => 0,
+            'timezone' => trim($parts[1])
+        );
     }
 }
 
@@ -27,10 +39,21 @@ foreach (explode("\n", $weatherCitiesRaw) as $line) {
         );
     }
 }
+// 注入天气显示选项
+$weatherOptsRaw = nav17_get_theme_config('weatherOptions', array('tempRange','weatherType','humidity','sunrise'));
+if (!is_array($weatherOptsRaw)) {
+    $weatherOptsRaw = explode(',', $weatherOptsRaw);
+}
+$weatherOpts = array();
+foreach ($weatherOptsRaw as $opt) {
+    if (is_array($opt)) $weatherOpts[] = $opt[0];
+    else $weatherOpts[] = $opt;
+}
 ?>
 <script>
     window.NAV_CLOCK_CITIES = <?php echo json_encode($clockCities); ?>;
     window.NAV_WEATHER_CITIES = <?php echo json_encode($weatherCities); ?>;
+    window.NAV_WEATHER_OPTIONS = <?php echo json_encode($weatherOpts); ?>;
     window.NAV_BOOKMARKS = [];
     window.NAV_CATEGORIES = [];
 </script>

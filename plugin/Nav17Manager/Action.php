@@ -4,9 +4,10 @@ if (!defined('__TYPECHO_ROOT_DIR__')) exit;
 /**
  * 17Nav AJAX 接口
  *
- * @package 17NavManager
+ * @package Nav17Manager
+ * @license AGPL-3.0
  */
-class 17NavManager_Action extends Typecho_Widget implements Widget_Interface_Do
+class Nav17Manager_Action extends Typecho_Widget implements Widget_Interface_Do
 {
     public function action()
     {
@@ -69,7 +70,7 @@ class 17NavManager_Action extends Typecho_Widget implements Widget_Interface_Do
 
     private function listBookmarks()
     {
-        $bookmarks = 17NavManager_Plugin::getBookmarks();
+        $bookmarks = Nav17Manager_Plugin::getBookmarks();
         $this->response->throwJson($bookmarks);
     }
 

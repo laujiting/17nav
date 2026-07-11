@@ -19,8 +19,8 @@ ssh -i "$SSH_KEY" "$ECS_USER@$ECS_HOST" "sudo cp -r /tmp/17nav-theme/* $TYPECHO_
 
 # 2. 部署插件
 echo "🔌 部署插件..."
-scp -r -i "$SSH_KEY" plugin/* "$ECS_USER@$ECS_HOST:/tmp/17nav-plugin/"
-ssh -i "$SSH_KEY" "$ECS_USER@$ECS_HOST" "sudo cp -r /tmp/17nav-plugin/* $TYPECHO_DATA/plugins/17NavManager/ && sudo chown -R 33:33 $TYPECHO_DATA/plugins/17NavManager/"
+scp -r -i "$SSH_KEY" plugin/Nav17Manager/* "$ECS_USER@$ECS_HOST:/tmp/17nav-plugin/"
+ssh -i "$SSH_KEY" "$ECS_USER@$ECS_HOST" "sudo cp -r /tmp/17nav-plugin/* $TYPECHO_DATA/plugins/Nav17Manager/ && sudo chown -R 33:33 $TYPECHO_DATA/plugins/Nav17Manager/"
 
 echo "✅ 部署完成！"
 echo "访问: https://nav.17ai.icu/"

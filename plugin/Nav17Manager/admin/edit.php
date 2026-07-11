@@ -71,7 +71,7 @@ document.getElementById('bookmark-form').addEventListener('submit', async (e) =>
     };
 
     const action = data.cid ? 'edit' : 'add';
-    const res = await fetch('/index.php/17nav/api?do=' + action, {
+    const res = await fetch('/index.php/nav17/api?do=' + action, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(data)

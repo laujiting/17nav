@@ -41,7 +41,7 @@ include 'menu.php';
 
 <script>
 // 加载书签列表
-fetch('/index.php/17nav/api?do=list')
+fetch('/index.php/nav17/api?do=list')
     .then(r => r.json())
     .then(data => {
         const tbody = document.getElementById('bookmark-table-body');

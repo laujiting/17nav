@@ -4,33 +4,31 @@ if (!defined('__TYPECHO_ROOT_DIR__')) exit;
 /**
  * 17Nav 导航管理插件
  *
- * @package 17NavManager
+ * @package Nav17Manager
  * @author  Skyline
  * @version 1.0.0
  * @link    https://17ai.icu
- * @license GPL-3.0
+ * @license AGPL-3.0
  */
-class 17NavManager_Plugin implements Typecho_Plugin_Interface
+class Nav17Manager_Plugin implements Typecho_Plugin_Interface
 {
     public static function activate()
     {
         // 注册后台菜单
-        Helper::addPanel(1, '17NavManager/admin/manage.php', '导航管理', '导航管理', 'administrator');
+        Helper::addPanel(1, 'Nav17Manager/admin/manage.php', '导航管理', '导航管理', 'administrator');
 
         // 注册 AJAX 路由
-        Helper::addRoute('17nav-api', '/17nav/api', '17NavManager_Action', 'action');
-
-        // 注册文章自定义字段
-        Helper::addRoute('17nav-click', '/17nav/click', '17NavManager_Action', 'click');
+        Helper::addRoute('nav17-api', '/nav17/api', 'Nav17Manager_Action', 'action');
+        Helper::addRoute('nav17-click', '/nav17/click', 'Nav17Manager_Action', 'click');
 
         return _t('17Nav 导航管理插件已启用');
     }
 
     public static function deactivate()
     {
-        Helper::removePanel(1, '17NavManager/admin/manage.php');
-        Helper::removeRoute('17nav-api');
-        Helper::removeRoute('17nav-click');
+        Helper::removePanel(1, 'Nav17Manager/admin/manage.php');
+        Helper::removeRoute('nav17-api');
+        Helper::removeRoute('nav17-click');
     }
 
     public static function config($form)

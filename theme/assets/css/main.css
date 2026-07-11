@@ -197,31 +197,41 @@ body {
 }
 .clock-map {
     position: relative; width: 100%; padding-bottom: 50%; /* 2:1 宽高比 */
-    background: #0a0a1a;
+    background: #1e1b4b;
     background-image:
-        linear-gradient(rgba(99,102,241,0.08) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(99,102,241,0.08) 1px, transparent 1px);
+        linear-gradient(rgba(99,102,241,0.12) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99,102,241,0.12) 1px, transparent 1px);
     background-size: 5% 10%;
-    border: 1px solid rgba(99,102,241,0.2);
+    border: 1px solid rgba(99,102,241,0.25);
     border-radius: 0.6rem;
     overflow: hidden;
 }
-/* 地图大陆轮廓（简化版，用 box-shadow 模拟） */
+/* 地图大陆轮廓 */
 .clock-map::before {
     content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
     background:
-        radial-gradient(ellipse 15% 10% at 20% 35%, rgba(67,56,202,0.25) 0%, transparent 70%),
-        radial-gradient(ellipse 12% 15% at 28% 55%, rgba(67,56,202,0.2) 0%, transparent 70%),
-        radial-gradient(ellipse 8% 10% at 50% 40%, rgba(67,56,202,0.2) 0%, transparent 70%),
-        radial-gradient(ellipse 10% 12% at 55% 60%, rgba(67,56,202,0.15) 0%, transparent 70%),
-        radial-gradient(ellipse 8% 8% at 75% 35%, rgba(67,56,202,0.2) 0%, transparent 70%),
-        radial-gradient(ellipse 6% 8% at 80% 70%, rgba(67,56,202,0.15) 0%, transparent 70%);
+        /* 北美 */
+        radial-gradient(ellipse 14% 12% at 18% 32%, rgba(67,56,202,0.45) 0%, transparent 70%),
+        /* 南美 */
+        radial-gradient(ellipse 8% 16% at 28% 65%, rgba(67,56,202,0.4) 0%, transparent 70%),
+        /* 欧洲 */
+        radial-gradient(ellipse 7% 8% at 50% 32%, rgba(67,56,202,0.45) 0%, transparent 70%),
+        /* 非洲 */
+        radial-gradient(ellipse 9% 16% at 53% 55%, rgba(67,56,202,0.4) 0%, transparent 70%),
+        /* 亚洲 */
+        radial-gradient(ellipse 18% 14% at 68% 35%, rgba(67,56,202,0.45) 0%, transparent 70%),
+        /* 东南亚 */
+        radial-gradient(ellipse 6% 6% at 75% 52%, rgba(67,56,202,0.3) 0%, transparent 70%),
+        /* 澳洲 */
+        radial-gradient(ellipse 7% 7% at 82% 70%, rgba(67,56,202,0.4) 0%, transparent 70%),
+        /* 格陵兰 */
+        radial-gradient(ellipse 5% 5% at 35% 20%, rgba(67,56,202,0.3) 0%, transparent 70%);
     pointer-events: none;
 }
 .clock-marker {
     position: absolute; width: 8px; height: 8px;
     transform: translate(-50%, -50%);
-    z-index: 2;
+    z-index: 3;
 }
 .clock-marker::before {
     content: ''; position: absolute; top: 50%; left: 50%;
@@ -237,14 +247,13 @@ body {
 }
 .clock-bubble {
     position: absolute;
-    background: rgba(15,15,26,0.92); backdrop-filter: blur(8px);
+    background: rgba(30,27,75,0.92); backdrop-filter: blur(8px);
     border: 1px solid rgba(165,180,252,0.3);
     border-radius: 0.5rem; padding: 0.3rem 0.6rem;
     white-space: nowrap; pointer-events: none;
     transition: all 0.2s ease; z-index: 10;
     width: 72px;
 }
-.clock-marker:hover ~ .clock-bubble,
 .clock-bubble:hover {
     background: rgba(49,46,129,0.95); border-color: rgba(165,180,252,0.6);
 }
@@ -259,7 +268,7 @@ body {
     font-variant-numeric: tabular-nums; line-height: 1.2;
 }
 .clock-bubble-date {
-    font-size: 0.65rem; color: #94a3b8;
+    font-size: 0.65rem; color: #c7d2fe;
 }
 
 /* ===== 天气增强版 ===== */

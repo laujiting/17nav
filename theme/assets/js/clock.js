@@ -20,6 +20,7 @@
     var BUBBLE_W = 72;
     var BUBBLE_H = 48;
     var GAP = 6;
+    var EDGE_PAD = 10; // 距离地图边缘最小距离
 
     function getTimeData(c, now) {
         var time = now.toLocaleTimeString('zh-CN', {
@@ -84,11 +85,10 @@
                 var bx = m.pxX + off.dx;
                 var by = m.pxY + off.dy;
 
-                // 边界检查
-                if (bx < 0 || bx + BUBBLE_W > mapW || by < 0 || by + BUBBLE_H > mapH) {
-                    // 如果被边缘裁切，尝试微调贴边
-                    bx = Math.max(GAP, Math.min(bx, mapW - BUBBLE_W - GAP));
-                    by = Math.max(GAP, Math.min(by, mapH - BUBBLE_H - GAP));
+                // 边界检查（留出 EDGE_PAD 的边距）
+                if (bx < EDGE_PAD || bx + BUBBLE_W > mapW - EDGE_PAD || by < EDGE_PAD || by + BUBBLE_H > mapH - EDGE_PAD) {
+                    bx = Math.max(EDGE_PAD, Math.min(bx, mapW - BUBBLE_W - EDGE_PAD));
+                    by = Math.max(EDGE_PAD, Math.min(by, mapH - BUBBLE_H - EDGE_PAD));
                 }
 
                 var rect = { x: bx, y: by, w: BUBBLE_W, h: BUBBLE_H };
@@ -131,8 +131,8 @@
                 if (rectsOverlap(placed[i], placed[j])) {
                     // 把后面的往上推
                     var pushUp = placed[j].y - BUBBLE_H - GAP;
-                    if (pushUp < 0) pushUp = placed[j].y + BUBBLE_H + GAP;
-                    if (pushUp + BUBBLE_H > mapH) pushUp = mapH - BUBBLE_H - GAP;
+                    if (pushUp < EDGE_PAD) pushUp = placed[j].y + BUBBLE_H + GAP;
+                    if (pushUp + BUBBLE_H > mapH - EDGE_PAD) pushUp = mapH - BUBBLE_H - EDGE_PAD;
                     placed[j].y = pushUp;
                     markers[j].bubbleY = pushUp;
                 }

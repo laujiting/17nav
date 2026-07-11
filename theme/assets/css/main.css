@@ -236,17 +236,20 @@ body {
     50% { box-shadow: 0 0 10px #a5b4fc, 0 0 20px rgba(165,180,252,0.7); }
 }
 .clock-bubble {
-    position: absolute; bottom: 100%; left: 100%;
-    transform: translateY(50%);
+    position: absolute;
     background: rgba(15,15,26,0.92); backdrop-filter: blur(8px);
     border: 1px solid rgba(165,180,252,0.3);
     border-radius: 0.5rem; padding: 0.3rem 0.6rem;
     white-space: nowrap; pointer-events: none;
     transition: all 0.2s ease; z-index: 10;
+    width: 72px;
 }
-.clock-marker:hover .clock-bubble {
+.clock-marker:hover ~ .clock-bubble,
+.clock-bubble:hover {
     background: rgba(49,46,129,0.95); border-color: rgba(165,180,252,0.6);
-    transform: translateY(50%) scale(1.1);
+}
+.clock-connector {
+    transition: opacity 0.2s;
 }
 .clock-bubble-city {
     font-size: 0.7rem; color: #a5b4fc; font-weight: 600;

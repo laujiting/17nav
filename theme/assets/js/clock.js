@@ -1,7 +1,6 @@
 /**
  * 17Nav 世界时钟 - 地图版
- * 城市按经纬度标记在世界地图上，气泡框显示时间
- * 自适应布局：避免遮挡和边缘裁切
+ * 碰撞检测 + 自适应避让算法
  */
 (function() {
     'use strict';
@@ -11,52 +10,131 @@
     if (!container) return;
 
     function project(lat, lon) {
-        var x = (lon + 180) / 360 * 100;
-        var y = (90 - lat) / 180 * 100;
-        return {x: x, y: y};
+        return {
+            x: (lon + 180) / 360 * 100,
+            y: (90 - lat) / 180 * 100
+        };
+    }
+
+    // 气泡框尺寸估算
+    var BUBBLE_W = 72;
+    var BUBBLE_H = 48;
+    var GAP = 6;
+
+    function getTimeData(c, now) {
+        var time = now.toLocaleTimeString('zh-CN', {
+            timeZone: c.timezone, hour: '2-digit', minute: '2-digit', hour12: false
+        });
+        var date = now.toLocaleDateString('zh-CN', {
+            timeZone: c.timezone, month: '2-digit', day: '2-digit', weekday: 'short'
+        });
+        return { time: time, date: date };
+    }
+
+    function rectsOverlap(a, b) {
+        return !(a.x + a.w < b.x || b.x + b.w < a.x || a.y + a.h < b.y || b.y + b.h < a.y);
     }
 
     function render() {
         var now = new Date();
         container.innerHTML = '';
 
-        // 先计算所有标记点位置
+        if (cities.length === 0) return;
+
+        var mapW = container.clientWidth || 300;
+        var mapH = container.clientHeight || (mapW / 2);
+
+        // 计算每个标记的像素坐标
         var markers = cities.map(function(c) {
             var pos = project(c.lat, c.lon);
-            var time = now.toLocaleTimeString('zh-CN', {
-                timeZone: c.timezone, hour: '2-digit', minute: '2-digit', hour12: false
-            });
-            var date = now.toLocaleDateString('zh-CN', {
-                timeZone: c.timezone, month: '2-digit', day: '2-digit', weekday: 'short'
-            });
-            return { city: c, pos: pos, time: time, date: date };
+            var td = getTimeData(c, now);
+            return {
+                city: c.city,
+                pxX: pos.x / 100 * mapW,  // 标记点像素 X
+                pxY: pos.y / 100 * mapH,  // 标记点像素 Y
+                time: td.time,
+                date: td.date,
+                // 气泡框位置（初始为标记点右上方），会后面调整
+                bubbleX: 0,
+                bubbleY: 0,
+                placed: false
+            };
         });
 
-        // 按经度从西到东排序，检测重叠
-        markers.sort(function(a, b) { return a.pos.x - b.pos.x; });
+        // 每个气泡有 4 个候选位置：右上、右下、左上、左下
+        // 偏移量相对于标记点
+        var offsets = [
+            { dx: GAP, dy: -BUBBLE_H - GAP },        // 右上
+            { dx: GAP, dy: GAP },                     // 右下
+            { dx: -BUBBLE_W - GAP, dy: -BUBBLE_H - GAP }, // 左上
+            { dx: -BUBBLE_W - GAP, dy: GAP },         // 左下
+        ];
 
-        // 气泡框宽度估算（约 70px），地图宽度动态获取
-        var mapWidth = container.clientWidth || 300;
-        var bubbleWidth = 70;
-        var minGap = 4; // 气泡之间最小间距 px
+        var placed = [];
 
-        // 计算每个气泡的理想 X 中心位置（像素）
+        // 按经度排序（从西到东），减少交叉
+        markers.sort(function(a, b) { return a.pxX - b.pxX; });
+
         markers.forEach(function(m) {
-            m.pixelX = m.pos.x / 100 * mapWidth;
+            var bestOffset = null;
+            var bestScore = -Infinity;
+
+            for (var i = 0; i < offsets.length; i++) {
+                var off = offsets[i];
+                var bx = m.pxX + off.dx;
+                var by = m.pxY + off.dy;
+
+                // 边界检查
+                if (bx < 0 || bx + BUBBLE_W > mapW || by < 0 || by + BUBBLE_H > mapH) {
+                    // 如果被边缘裁切，尝试微调贴边
+                    bx = Math.max(GAP, Math.min(bx, mapW - BUBBLE_W - GAP));
+                    by = Math.max(GAP, Math.min(by, mapH - BUBBLE_H - GAP));
+                }
+
+                var rect = { x: bx, y: by, w: BUBBLE_W, h: BUBBLE_H };
+
+                // 碰撞检测
+                var hasCollision = false;
+                for (var j = 0; j < placed.length; j++) {
+                    if (rectsOverlap(rect, placed[j])) {
+                        hasCollision = true;
+                        break;
+                    }
+                }
+
+                // 评分：无碰撞 > 有碰撞；离标记点近 > 远
+                var distScore = -Math.abs(bx + BUBBLE_W/2 - m.pxX) - Math.abs(by + BUBBLE_H/2 - m.pxY);
+                var score = (hasCollision ? -10000 : 0) + distScore;
+
+                // 优先选无碰撞的
+                if (!hasCollision) {
+                    bestOffset = { bx: bx, by: by };
+                    break;
+                }
+
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestOffset = { bx: bx, by: by };
+                }
+            }
+
+            m.bubbleX = bestOffset.bx;
+            m.bubbleY = bestOffset.by;
+            m.placed = true;
+
+            placed.push({ x: m.bubbleX, y: m.bubbleY, w: BUBBLE_W, h: BUBBLE_H });
         });
 
-        // 碰撞检测：从左到右，如果重叠就交替上/下错开
-        for (var i = 1; i < markers.length; i++) {
-            var prev = markers[i - 1];
-            var curr = markers[i];
-            var prevRight = prev.pixelX + bubbleWidth / 2;
-            var currLeft = curr.pixelX - bubbleWidth / 2;
-
-            // 如果 Y 距离也近（< 20%），才需要错开
-            if (Math.abs(prev.pos.y - curr.pos.y) < 15) {
-                if (currLeft < prevRight + minGap) {
-                    // Y 方向交替错开
-                    curr.altY = prev.altY === 'up' ? 'down' : 'up';
+        // 如果还有碰撞（4个位置都不行），尝试 Y 方向大幅错开
+        for (var i = 0; i < placed.length; i++) {
+            for (var j = i + 1; j < placed.length; j++) {
+                if (rectsOverlap(placed[i], placed[j])) {
+                    // 把后面的往上推
+                    var pushUp = placed[j].y - BUBBLE_H - GAP;
+                    if (pushUp < 0) pushUp = placed[j].y + BUBBLE_H + GAP;
+                    if (pushUp + BUBBLE_H > mapH) pushUp = mapH - BUBBLE_H - GAP;
+                    placed[j].y = pushUp;
+                    markers[j].bubbleY = pushUp;
                 }
             }
         }
@@ -65,78 +143,51 @@
         markers.forEach(function(m) {
             var dot = document.createElement('div');
             dot.className = 'clock-marker';
-            dot.style.left = m.pos.x + '%';
-            dot.style.top = m.pos.y + '%';
+            dot.style.left = (m.pxX / mapW * 100) + '%';
+            dot.style.top = (m.pxY / mapH * 100) + '%';
 
+            // 连接线（标记点到气泡框）
+            var connector = document.createElement('div');
+            connector.className = 'clock-connector';
+            var cx = m.pxX;
+            var cy = m.pxY;
+            var bx = m.bubbleX + BUBBLE_W / 2;
+            var by = m.bubbleY + BUBBLE_H / 2;
+            var dx = bx - cx;
+            var dy = by - cy;
+            var len = Math.sqrt(dx * dx + dy * dy);
+            var angle = Math.atan2(dy, dx) * 180 / Math.PI;
+            connector.style.cssText = 'position:absolute;left:' + (cx / mapW * 100) + '%;top:' + (cy / mapH * 100) + '%;' +
+                'width:' + len + 'px;height:1px;background:rgba(165,180,252,0.3);' +
+                'transform-origin:0 0;transform:rotate(' + angle + 'deg);' +
+                'pointer-events:none;z-index:1';
+
+            container.appendChild(connector);
+
+            // 气泡框（绝对定位，像素坐标）
             var bubble = document.createElement('div');
             bubble.className = 'clock-bubble';
-
+            bubble.style.cssText =
+                'position:absolute;left:' + m.bubbleX + 'px;top:' + m.bubbleY + 'px;' +
+                'transform:none;margin:0;';
             bubble.innerHTML =
-                '<div class="clock-bubble-city">' + m.city.city + '</div>' +
+                '<div class="clock-bubble-city">' + m.city + '</div>' +
                 '<div class="clock-bubble-time">' + m.time + '</div>' +
                 '<div class="clock-bubble-date">' + m.date + '</div>';
 
-            // X 方向：自动避让左右边缘
-            var xPct = m.pos.x;
-            if (xPct > 75) {
-                // 靠右边缘 -> 气泡在标记点左侧
-                bubble.style.right = '100%';
-                bubble.style.left = 'auto';
-                bubble.style.marginRight = '6px';
-                bubble.style.marginLeft = '0';
-                bubble.style.transform = 'translateY(-50%)';
-            } else if (xPct < 25) {
-                // 靠左边缘 -> 气泡在标记点右侧
-                bubble.style.left = '100%';
-                bubble.style.right = 'auto';
-                bubble.style.marginLeft = '6px';
-                bubble.style.marginRight = '0';
-                bubble.style.transform = 'translateY(-50%)';
-            } else {
-                // 中间区域 -> 默认右侧
-                bubble.style.left = '100%';
-                bubble.style.right = 'auto';
-                bubble.style.marginLeft = '6px';
-                bubble.style.marginRight = '0';
-                bubble.style.transform = 'translateY(-50%)';
-            }
+            container.appendChild(bubble);
 
-            // Y 方向：自动避让上下边缘 + 重叠错开
-            var yPct = m.pos.y;
-            if (m.altY === 'up' || yPct < 20) {
-                bubble.style.bottom = '100%';
-                bubble.style.top = 'auto';
-                bubble.style.transform = 'translateY(0)';
-                if (m.altY === 'up') {
-                    bubble.style.marginBottom = '14px';
-                } else {
-                    bubble.style.marginBottom = '6px';
-                }
-            } else if (yPct > 80) {
-                bubble.style.top = '100%';
-                bubble.style.bottom = 'auto';
-                bubble.style.transform = 'translateY(0)';
-                bubble.style.marginTop = '6px';
-            } else {
-                // 默认：垂直居中
-                bubble.style.top = '50%';
-                bubble.style.bottom = 'auto';
-                bubble.style.transform = 'translateY(-50%)';
-            }
-
-            dot.appendChild(bubble);
+            // 标记点本身
+            dot.style.transform = 'translate(-50%, -50%)';
             container.appendChild(dot);
         });
     }
 
     render();
-    // 每秒更新时间
     setInterval(render, 1000);
-    // 窗口大小变化时重新布局
     var resizeTimer;
     window.addEventListener('resize', function() {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(render, 200);
     });
 })();
-

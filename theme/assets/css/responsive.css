@@ -1,0 +1,127 @@
+/* ===== 17Nav Responsive / Mobile ===== */
+
+@media (max-width: 768px) {
+    :root {
+        --sidebar-width: 0px;
+    }
+
+    /* 侧边栏 -> 汉堡菜单 */
+    .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        width: 270px;
+    }
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    /* 汉堡按钮 */
+    .mobile-menu-btn {
+        display: flex;
+        position: fixed; top: 1rem; left: 1rem; z-index: 200;
+        width: 40px; height: 40px; border-radius: 0.6rem;
+        background: var(--sidebar-bg); color: white;
+        border: none; cursor: pointer; align-items: center; justify-content: center;
+        font-size: 1.2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    /* 主区域全宽 */
+    .main-wrap {
+        margin-left: 0; padding: 4rem 1rem 1rem;
+    }
+    .container {
+        border-radius: 1rem; padding: 1.2rem;
+    }
+
+    /* 搜索栏全宽 */
+    .search-bar {
+        flex-direction: row;
+    }
+    .search-engine select {
+        font-size: 0.75rem; padding: 0.5rem;
+    }
+    #search-input { font-size: 0.85rem; }
+
+    /* 组件横向排列 */
+    .widgets {
+        flex-direction: row; overflow-x: auto;
+        scrollbar-width: none; padding-bottom: 0.5rem;
+    }
+    .widgets::-webkit-scrollbar { display: none; }
+    .widget {
+        min-width: 180px; flex-shrink: 0;
+    }
+
+    /* 卡片单列 -> 双列 */
+    .bookmark-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.8rem;
+    }
+    .bookmark-card {
+        padding: 0.8rem;
+    }
+    .bookmark-card .icon,
+    .bookmark-card .icon-placeholder {
+        width: 32px; height: 32px;
+    }
+
+    /* 底部栏 */
+    .bottom-bar {
+        flex-direction: column; align-items: stretch;
+    }
+    .tag-cloud {
+        justify-content: center;
+    }
+
+    /* 搜索结果全宽 */
+    .search-results {
+        max-height: 300px;
+    }
+
+    /* 遮罩层（侧边栏打开时） */
+    .sidebar-overlay {
+        display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.5); z-index: 99;
+    }
+    .sidebar-overlay.show {
+        display: block; animation: fadeIn 0.2s ease;
+    }
+}
+
+@media (max-width: 480px) {
+    .bookmark-grid {
+        grid-template-columns: 1fr;
+    }
+    .widgets {
+        flex-direction: column;
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* 触摸手势优化 */
+@media (hover: none) and (pointer: coarse) {
+    .bookmark-card:hover {
+        transform: none;
+        box-shadow: 0 4px 12px -3px rgba(0,0,0,0.1);
+    }
+    .bookmark-card:active {
+        transform: scale(0.97);
+    }
+    .tag-pill:hover {
+        transform: none;
+    }
+}
+
+/* 无障碍：减少动画 */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

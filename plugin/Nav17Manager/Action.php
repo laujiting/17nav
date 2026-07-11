@@ -13,11 +13,19 @@ class Nav17Manager_Action extends \Typecho\Widget implements \Typecho\Widget\Act
     {
         $this->response->setContentType('application/json');
 
+        // 验证登录
+        if (!\Typecho\Widget::widget('Widget_User')->hasLogin()) {
+            $this->response->throwJson(array('error' => '请先登录'));
+        }
+
         $action = $this->request->get('do', '');
 
         switch ($action) {
             case 'list':
                 $this->listBookmarks();
+                break;
+            case 'categories':
+                $this->listCategories();
                 break;
             case 'add':
                 $this->addBookmark();
@@ -34,7 +42,7 @@ class Nav17Manager_Action extends \Typecho\Widget implements \Typecho\Widget\Act
     }
 
     /**
-     * 点击统计
+     * 点击统计（不需要登录）
      */
     public function click()
     {
@@ -68,18 +76,58 @@ class Nav17Manager_Action extends \Typecho\Widget implements \Typecho\Widget\Act
         $this->response->throwJson($bookmarks);
     }
 
+    private function listCategories()
+    {
+        $categories = Nav17Manager_Plugin::getCategories();
+        $this->response->throwJson($categories);
+    }
+
     private function addBookmark()
     {
-        $this->response->throwJson(array('ok' => true));
+        $raw = file_get_contents('php://input');
+        $data = json_decode($raw, true);
+
+        if (empty($data['name']) || empty($data['url'])) {
+            $this->response->throwJson(array('error' => '名称和 URL 为必填项'));
+        }
+
+        try {
+            $cid = Nav17Manager_Plugin::addBookmark($data);
+            $this->response->throwJson(array('ok' => true, 'cid' => $cid));
+        } catch (\Exception $e) {
+            $this->response->throwJson(array('error' => $e->getMessage()));
+        }
     }
 
     private function editBookmark()
     {
-        $this->response->throwJson(array('ok' => true));
+        $raw = file_get_contents('php://input');
+        $data = json_decode($raw, true);
+
+        if (empty($data['cid'])) {
+            $this->response->throwJson(array('error' => '缺少书签 ID'));
+        }
+
+        try {
+            Nav17Manager_Plugin::editBookmark($data['cid'], $data);
+            $this->response->throwJson(array('ok' => true));
+        } catch (\Exception $e) {
+            $this->response->throwJson(array('error' => $e->getMessage()));
+        }
     }
 
     private function deleteBookmark()
     {
-        $this->response->throwJson(array('ok' => true));
+        $cid = intval($this->request->get('cid', 0));
+        if (!$cid) {
+            $this->response->throwJson(array('error' => '缺少书签 ID'));
+        }
+
+        try {
+            Nav17Manager_Plugin::deleteBookmark($cid);
+            $this->response->throwJson(array('ok' => true));
+        } catch (\Exception $e) {
+            $this->response->throwJson(array('error' => $e->getMessage()));
+        }
     }
 }

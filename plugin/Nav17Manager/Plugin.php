@@ -1,4 +1,13 @@
 <?php
+
+namespace TypechoPlugin\Nav17Manager;
+
+use Typecho\Plugin\PluginInterface;
+use Typecho\Widget\Helper\Form;
+use Typecho\Widget\Helper\Form\Element\Select;
+use Typecho\Widget\Helper\Form\Element\Textarea;
+use Typecho\Db;
+
 if (!defined('__TYPECHO_ROOT_DIR__')) exit;
 
 /**
@@ -10,7 +19,7 @@ if (!defined('__TYPECHO_ROOT_DIR__')) exit;
  * @link    https://17ai.icu
  * @license AGPL-3.0
  */
-class Nav17Manager_Plugin implements \Typecho\Plugin\PluginInterface
+class Plugin implements PluginInterface
 {
     public static function activate()
     {
@@ -27,16 +36,16 @@ class Nav17Manager_Plugin implements \Typecho\Plugin\PluginInterface
         \Helper::removeRoute('nav17-click');
     }
 
-    public static function config($form)
+    public static function config(Form $form)
     {
-        $sortRule = new \Typecho\Widget\Helper\Form\Element\Select(
+        $sortRule = new Select(
             'sortRule',
             array('weight' => '按权重', 'clicks' => '按点击频次', 'name' => '按名称序'),
             'weight', '默认排序规则', '书签的默认排序方式'
         );
         $form->addInput($sortRule);
 
-        $presetTags = new \Typecho\Widget\Helper\Form\Element\Textarea(
+        $presetTags = new Textarea(
             'presetTags', null,
             "#2026-07\n#AI\n#开发\n#工具\n#学习\n#运维\n#设计\n#娱乐\n#社交",
             '预设标签', '每行一个，以 # 开头'
@@ -44,19 +53,19 @@ class Nav17Manager_Plugin implements \Typecho\Plugin\PluginInterface
         $form->addInput($presetTags);
     }
 
-    public static function personalConfig($form) {}
+    public static function personalConfig(Form $form) {}
 
     /**
      * 获取所有书签
      */
     public static function getBookmarks()
     {
-        $db = \Typecho\Db::get();
+        $db = Db::get();
         $posts = $db->fetchAll($db->select()
             ->from('table.contents')
             ->where('type = ?', 'post')
             ->where('status = ?', 'publish')
-            ->order('order', \Typecho\Db::SORT_ASC));
+            ->order('order', Db::SORT_ASC));
 
         $bookmarks = array();
         foreach ($posts as $post) {
@@ -86,7 +95,6 @@ class Nav17Manager_Plugin implements \Typecho\Plugin\PluginInterface
                 ->where('table.metas.type = ?', 'tag'));
             $tagList = array_map(function($t) { return $t['name']; }, $tags);
 
-            // 从 text 字段提取描述（去掉 markdown 前缀）
             $text = $post['text'] ?? '';
             $desc = preg_replace('/^<!--markdown-->/', '', $text);
             $desc = trim(strip_tags($desc));
@@ -113,11 +121,11 @@ class Nav17Manager_Plugin implements \Typecho\Plugin\PluginInterface
      */
     public static function getCategories()
     {
-        $db = \Typecho\Db::get();
+        $db = Db::get();
         $metas = $db->fetchAll($db->select()
             ->from('table.metas')
             ->where('type = ?', 'category')
-            ->order('order', \Typecho\Db::SORT_ASC));
+            ->order('order', Db::SORT_ASC));
         return array_map(function($m) {
             return array('mid' => $m['mid'], 'name' => $m['name'], 'slug' => $m['slug']);
         }, $metas);
@@ -128,9 +136,8 @@ class Nav17Manager_Plugin implements \Typecho\Plugin\PluginInterface
      */
     public static function addBookmark($data)
     {
-        $db = \Typecho\Db::get();
+        $db = Db::get();
 
-        // 自动获取 favicon
         $icon = $data['icon'] ?? '';
         if (empty($icon) && !empty($data['url'])) {
             $domain = parse_url($data['url'], PHP_URL_HOST);
@@ -141,7 +148,6 @@ class Nav17Manager_Plugin implements \Typecho\Plugin\PluginInterface
 
         $now = time();
 
-        // 创建文章
         $cid = $db->query($db->insert('table.contents')
             ->rows(array(
                 'title' => $data['name'],
@@ -162,7 +168,6 @@ class Nav17Manager_Plugin implements \Typecho\Plugin\PluginInterface
                 'parent' => 0,
             )));
 
-        // 写入自定义字段
         $fields = array(
             'nav_url' => $data['url'] ?? '',
             'nav_icon' => $icon,
@@ -181,19 +186,16 @@ class Nav17Manager_Plugin implements \Typecho\Plugin\PluginInterface
                 )));
         }
 
-        // 关联分类
         if (!empty($data['categoryId'])) {
             $db->query($db->insert('table.relationships')
                 ->rows(array('cid' => $cid, 'mid' => intval($data['categoryId']))));
         }
 
-        // 关联标签
         if (!empty($data['tags'])) {
             foreach ($data['tags'] as $tagName) {
                 $tagName = trim($tagName);
                 if (empty($tagName)) continue;
 
-                // 查找或创建标签
                 $existing = $db->fetchRow($db->select('mid')
                     ->from('table.metas')
                     ->where('type = ?', 'tag')
@@ -227,9 +229,8 @@ class Nav17Manager_Plugin implements \Typecho\Plugin\PluginInterface
      */
     public static function editBookmark($cid, $data)
     {
-        $db = \Typecho\Db::get();
+        $db = Db::get();
 
-        // 自动获取 favicon
         $icon = $data['icon'] ?? '';
         if (empty($icon) && !empty($data['url'])) {
             $domain = parse_url($data['url'], PHP_URL_HOST);
@@ -238,7 +239,6 @@ class Nav17Manager_Plugin implements \Typecho\Plugin\PluginInterface
             }
         }
 
-        // 更新文章
         $db->query($db->update('table.contents')
             ->rows(array(
                 'title' => $data['name'],
@@ -247,7 +247,6 @@ class Nav17Manager_Plugin implements \Typecho\Plugin\PluginInterface
             ))
             ->where('cid = ?', $cid));
 
-        // 更新自定义字段
         $fields = array(
             'nav_url' => $data['url'] ?? '',
             'nav_icon' => $icon,
@@ -285,7 +284,6 @@ class Nav17Manager_Plugin implements \Typecho\Plugin\PluginInterface
             $db->query($db->insert('table.relationships')
                 ->rows(array('cid' => $cid, 'mid' => intval($data['categoryId']))));
 
-            // 重新关联标签
             if (!empty($data['tags'])) {
                 foreach ($data['tags'] as $tagName) {
                     $tagName = trim($tagName);
@@ -325,7 +323,7 @@ class Nav17Manager_Plugin implements \Typecho\Plugin\PluginInterface
      */
     public static function deleteBookmark($cid)
     {
-        $db = \Typecho\Db::get();
+        $db = Db::get();
         $db->query($db->delete('table.contents')->where('cid = ?', $cid));
         $db->query($db->delete('table.fields')->where('cid = ?', $cid));
         $db->query($db->delete('table.relationships')->where('cid = ?', $cid));

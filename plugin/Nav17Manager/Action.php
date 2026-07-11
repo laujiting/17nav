@@ -1,4 +1,11 @@
 <?php
+
+namespace TypechoPlugin\Nav17Manager;
+
+use Typecho\Widget;
+use Typecho\Widget\ActionInterface;
+use Typecho\Db;
+
 if (!defined('__TYPECHO_ROOT_DIR__')) exit;
 
 /**
@@ -7,14 +14,13 @@ if (!defined('__TYPECHO_ROOT_DIR__')) exit;
  * @package Nav17Manager
  * @license AGPL-3.0
  */
-class Nav17Manager_Action extends \Typecho\Widget implements \Typecho\Widget\ActionInterface
+class Action extends Widget implements ActionInterface
 {
     public function action()
     {
         $this->response->setContentType('application/json');
 
-        // 验证登录
-        if (!\Typecho\Widget::widget('Widget_User')->hasLogin()) {
+        if (!\Widget\User::alloc()->hasLogin()) {
             $this->response->throwJson(array('error' => '请先登录'));
         }
 
@@ -53,7 +59,7 @@ class Nav17Manager_Action extends \Typecho\Widget implements \Typecho\Widget\Act
             $this->response->throwJson(array('error' => 'no url'));
         }
 
-        $db = \Typecho\Db::get();
+        $db = Db::get();
         $field = $db->fetchRow($db->select('cid', 'int_value')
             ->from('table.fields')
             ->where('name = ?', 'nav_url')
@@ -72,13 +78,13 @@ class Nav17Manager_Action extends \Typecho\Widget implements \Typecho\Widget\Act
 
     private function listBookmarks()
     {
-        $bookmarks = Nav17Manager_Plugin::getBookmarks();
+        $bookmarks = Plugin::getBookmarks();
         $this->response->throwJson($bookmarks);
     }
 
     private function listCategories()
     {
-        $categories = Nav17Manager_Plugin::getCategories();
+        $categories = Plugin::getCategories();
         $this->response->throwJson($categories);
     }
 
@@ -92,7 +98,7 @@ class Nav17Manager_Action extends \Typecho\Widget implements \Typecho\Widget\Act
         }
 
         try {
-            $cid = Nav17Manager_Plugin::addBookmark($data);
+            $cid = Plugin::addBookmark($data);
             $this->response->throwJson(array('ok' => true, 'cid' => $cid));
         } catch (\Exception $e) {
             $this->response->throwJson(array('error' => $e->getMessage()));
@@ -109,7 +115,7 @@ class Nav17Manager_Action extends \Typecho\Widget implements \Typecho\Widget\Act
         }
 
         try {
-            Nav17Manager_Plugin::editBookmark($data['cid'], $data);
+            Plugin::editBookmark($data['cid'], $data);
             $this->response->throwJson(array('ok' => true));
         } catch (\Exception $e) {
             $this->response->throwJson(array('error' => $e->getMessage()));
@@ -124,7 +130,7 @@ class Nav17Manager_Action extends \Typecho\Widget implements \Typecho\Widget\Act
         }
 
         try {
-            Nav17Manager_Plugin::deleteBookmark($cid);
+            Plugin::deleteBookmark($cid);
             $this->response->throwJson(array('ok' => true));
         } catch (\Exception $e) {
             $this->response->throwJson(array('error' => $e->getMessage()));

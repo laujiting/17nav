@@ -202,11 +202,11 @@ function themeConfig($form)
             sel.addEventListener('change', function() {
                 if (!sel.value) return;
                 var line = sel.value;
+                var cityName = line.split('|')[0];
                 var existing = ta.value.trim();
-                if (existing && existing.indexOf(c.city) < 0) {
-                    ta.value = existing + '\n' + line;
-                } else if (!existing) {
-                    ta.value = line;
+                var lines = existing.split('\n').map(function(l) { return l.split('|')[0].trim(); });
+                if (lines.indexOf(cityName) < 0) {
+                    ta.value = existing ? existing + '\n' + line : line;
                 }
                 sel.value = '';
             });

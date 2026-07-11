@@ -7,7 +7,7 @@ if (!defined('__TYPECHO_ROOT_DIR__')) exit;
  * @package Nav17Manager
  * @license AGPL-3.0
  */
-class Nav17Manager_Action extends Typecho_Widget implements Widget_Interface_Do
+class Nav17Manager_Action extends \Typecho\Widget implements \Typecho\Widget\ActionInterface
 {
     public function action()
     {
@@ -45,20 +45,14 @@ class Nav17Manager_Action extends Typecho_Widget implements Widget_Interface_Do
             $this->response->throwJson(array('error' => 'no url'));
         }
 
-        $db = Typecho_Db::get();
-        $post = $db->fetchRow($db->select('cid')
-            ->from('table.contents')
-            ->where('type = ?', 'post')
-            ->where('status = ?', 'publish'));
-
-        // 通过自定义字段查找
-        $field = $db->fetchRow($db->select('cid', 'str_value')
+        $db = \Typecho\Db::get();
+        $field = $db->fetchRow($db->select('cid', 'int_value')
             ->from('table.fields')
             ->where('name = ?', 'nav_url')
             ->where('str_value = ?', $url));
 
         if ($field) {
-            $clicks = intval($field['str_value']) + 1;
+            $clicks = intval($field['int_value']) + 1;
             $db->query($db->update('table.fields')
                 ->rows(array('int_value' => $clicks))
                 ->where('cid = ?', $field['cid'])
@@ -76,19 +70,16 @@ class Nav17Manager_Action extends Typecho_Widget implements Widget_Interface_Do
 
     private function addBookmark()
     {
-        // TODO: 创建文章 + 自定义字段
         $this->response->throwJson(array('ok' => true));
     }
 
     private function editBookmark()
     {
-        // TODO: 更新文章 + 自定义字段
         $this->response->throwJson(array('ok' => true));
     }
 
     private function deleteBookmark()
     {
-        // TODO: 删除文章
         $this->response->throwJson(array('ok' => true));
     }
 }

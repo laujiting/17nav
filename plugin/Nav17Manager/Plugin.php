@@ -10,30 +10,28 @@ if (!defined('__TYPECHO_ROOT_DIR__')) exit;
  * @link    https://17ai.icu
  * @license AGPL-3.0
  */
-class Nav17Manager_Plugin implements Typecho_Plugin_Interface
+class Nav17Manager_Plugin implements \Typecho\Plugin\PluginInterface
 {
     public static function activate()
     {
-        // 注册后台菜单
-        Helper::addPanel(1, 'Nav17Manager/admin/manage.php', '导航管理', '导航管理', 'administrator');
-
-        // 注册 AJAX 路由
-        Helper::addRoute('nav17-api', '/nav17/api', 'Nav17Manager_Action', 'action');
-        Helper::addRoute('nav17-click', '/nav17/click', 'Nav17Manager_Action', 'click');
+        \Typecho\Common::widget('Widget_Options', 'Nav17Manager_Action');
+        \Helper::addPanel(1, 'Nav17Manager/admin/manage.php', '导航管理', '导航管理', 'administrator');
+        \Helper::addRoute('nav17-api', '/nav17/api', 'Nav17Manager_Action', 'action');
+        \Helper::addRoute('nav17-click', '/nav17/click', 'Nav17Manager_Action', 'click');
 
         return _t('17Nav 导航管理插件已启用');
     }
 
     public static function deactivate()
     {
-        Helper::removePanel(1, 'Nav17Manager/admin/manage.php');
-        Helper::removeRoute('nav17-api');
-        Helper::removeRoute('nav17-click');
+        \Helper::removePanel(1, 'Nav17Manager/admin/manage.php');
+        \Helper::removeRoute('nav17-api');
+        \Helper::removeRoute('nav17-click');
     }
 
     public static function config($form)
     {
-        $sortRule = new Typecho_Widget_Helper_Form_Element_Select(
+        $sortRule = new \Typecho\Widget\Helper\Form\Element\Select(
             'sortRule',
             array(
                 'weight' => '按权重',
@@ -46,7 +44,7 @@ class Nav17Manager_Plugin implements Typecho_Plugin_Interface
         );
         $form->addInput($sortRule);
 
-        $presetTags = new Typecho_Widget_Helper_Form_Element_Textarea(
+        $presetTags = new \Typecho\Widget\Helper\Form\Element\Textarea(
             'presetTags', null,
             "#2026-07\n#AI\n#开发\n#工具\n#学习\n#运维\n#设计\n#娱乐\n#社交",
             '预设标签', '每行一个，以 # 开头'
@@ -61,12 +59,12 @@ class Nav17Manager_Plugin implements Typecho_Plugin_Interface
      */
     public static function getBookmarks()
     {
-        $db = Typecho_Db::get();
+        $db = \Typecho\Db::get();
         $posts = $db->fetchAll($db->select()
             ->from('table.contents')
             ->where('type = ?', 'post')
             ->where('status = ?', 'publish')
-            ->order('order', Typecho_Db::SORT_ASC));
+            ->order('order', \Typecho\Db::SORT_ASC));
 
         $bookmarks = array();
         foreach ($posts as $post) {

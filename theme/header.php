@@ -1,14 +1,13 @@
 <?php
 if (!defined('__TYPECHO_ROOT_DIR__')) exit;
 
-$navConfig = $this->options->plugin('17Nav');
-$themeMode = $navConfig ? $navConfig->themeMode : 'auto';
-$bgImage = $navConfig ? $navConfig->bgImage : '';
-$bgBlur = $navConfig ? $navConfig->bgBlur : '0';
-$bgOpacity = $navConfig ? $navConfig->bgOpacity : '0';
-$bgPosition = $navConfig ? $navConfig->bgPosition : 'center';
-$bgSize = $navConfig ? $navConfig->bgSize : 'cover';
-$bgScale = $navConfig ? $navConfig->bgScale : '100';
+$themeMode = nav17_get_theme_config('themeMode', 'auto');
+$bgImage = nav17_get_theme_config('bgImage', '');
+$bgBlur = nav17_get_theme_config('bgBlur', '0');
+$bgOpacity = nav17_get_theme_config('bgOpacity', '0');
+$bgPosition = nav17_get_theme_config('bgPosition', 'center');
+$bgSize = nav17_get_theme_config('bgSize', 'cover');
+$bgScale = nav17_get_theme_config('bgScale', '100');
 ?>
 <!DOCTYPE html>
 <html lang="zh-CN">

@@ -20,7 +20,7 @@
 - **后端**：PHP 8.2+ / Typecho 1.3.0+
 - **前端**：原生 CSS + ES6，D3.js（知识图谱）
 - **数据库**：SQLite（Typecho 自带）
-- **许可证**：GPL-3.0
+- **许可证**：AGPL-3.0
 
 ## 目录结构
 
@@ -84,6 +84,6 @@ bash dev/deploy.sh
 
 ## 许可证
 
-GPL-3.0 - 详见 [LICENSE](LICENSE)
+AGPL-3.0 - 详见 [LICENSE](LICENSE)
 
 商业许可请联系作者。
